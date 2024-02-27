@@ -1,11 +1,9 @@
-const express = require("express");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const router = express.Router();
 const usermodel = require("../models/userSchema");
+const jwt = require("jsonwebtoken");
 const { STATUS_TYPES } = require("../utils/Constants");
 
-router.post("/register", async (req, res) => {
+const registerUser = async (req, res) => {
   console.log(req.body, "Body");
   const { email, password, cpassword } = req.body;
   try {
@@ -30,13 +28,15 @@ router.post("/register", async (req, res) => {
       .status(STATUS_TYPES.DUPLICATE_KEY)
       .send({ error: error.message });
   }
-});
-router.post("/login", async (req, res) => {
+};
+
+const loginUser = async (req, res) => {
   const { email, password } = req.body;
   const user_or_not = await usermodel.findOne({ email });
   if (user_or_not) {
     const passwordmatch = await bcrypt.compare(password, user_or_not.password);
     if (passwordmatch) {
+      //jwt.sign({ _id: user_or_not._id }, process.env.JWT_SECRET,{expiresIn:"1d"});
       let token = jwt.sign({ _id: user_or_not._id }, process.env.JWT_SECRET);
       return res
         .status(STATUS_TYPES.CREATED)
@@ -51,6 +51,6 @@ router.post("/login", async (req, res) => {
       .status(STATUS_TYPES.FORBIDDEN)
       .json({ error: "Email Not Found" });
   }
-});
+};
 
-module.exports = router;
+module.exports = { registerUser, loginUser };
