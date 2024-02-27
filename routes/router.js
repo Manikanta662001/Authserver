@@ -37,10 +37,10 @@ router.post("/login", async (req, res) => {
   if (user_or_not) {
     const passwordmatch = await bcrypt.compare(password, user_or_not.password);
     if (passwordmatch) {
-  let token = jwt.sign({_id:user_or_not._id},process.env.JWT_SECRET)
+      let token = jwt.sign({ _id: user_or_not._id }, process.env.JWT_SECRET);
       return res
         .status(STATUS_TYPES.CREATED)
-        .json({ message: "Login Successfull" ,token});
+        .json({ message: "Login Successfull", token });
     } else {
       return res
         .status(STATUS_TYPES.FORBIDDEN)
