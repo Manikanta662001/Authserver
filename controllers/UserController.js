@@ -59,7 +59,7 @@ const getUser = async (req, res) => {
     if (!id) {
       throw new Error("User Not valid");
     }
-    const result = await usermodel.findOne({ _id:id });
+    const result = await usermodel.findOne({ _id: id });
     if (!result) {
       throw new Error("User Not valid");
     }
