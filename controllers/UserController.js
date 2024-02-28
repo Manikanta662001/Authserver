@@ -36,8 +36,8 @@ const loginUser = async (req, res) => {
   if (user_or_not) {
     const passwordmatch = await bcrypt.compare(password, user_or_not.password);
     if (passwordmatch) {
-      //jwt.sign({ _id: user_or_not._id }, process.env.JWT_SECRET,{expiresIn:"1d"});
-      let token = jwt.sign({ _id: user_or_not._id }, process.env.JWT_SECRET);
+      //jwt.sign({ id: user_or_not._id }, process.env.JWT_SECRET,{expiresIn:"1d"});
+      let token = jwt.sign({ id: user_or_not._id }, process.env.JWT_SECRET);
       return res
         .status(STATUS_TYPES.CREATED)
         .json({ message: "Login Successfull", token });
@@ -53,4 +53,20 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser };
+const getUser = async (req, res) => {
+  try {
+    const { id } = req.user;
+    if (!id) {
+      throw new Error("User Not valid");
+    }
+    const result = await usermodel.findOne({ _id: id });
+    if (!result) {
+      throw new Error("User Not valid");
+    }
+    return res.status(STATUS_TYPES.OK).json(result);
+  } catch (error) {
+    return res.status(STATUS_TYPES.BAD_REQUEST).json({ error: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, getUser };
