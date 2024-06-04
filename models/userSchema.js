@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
         require:true,
         minlength:8
     },
+    profileimg:{
+        type:String,
+        require:true,
+    }
 })
 
 const usermodel = new mongoose.model("users",userSchema)

@@ -1,12 +1,24 @@
 const bcrypt = require("bcrypt");
 const usermodel = require("../models/userSchema");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
 const { STATUS_TYPES } = require("../utils/Constants");
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "profile-imgs/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.fieldname + "@" + Date.now() + file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
 const registerUser = async (req, res) => {
-  console.log(req.body, "Body");
-  const { email, password, cpassword } = req.body;
   try {
+    const { filename } = req.file;
+    let { user } = req.body;
+    user = JSON.parse(user);
+    const { email, password, cpassword } = user;
     const alreadyuser = await usermodel.findOne({ email });
     if (alreadyuser) {
       return res
@@ -14,10 +26,12 @@ const registerUser = async (req, res) => {
         .send({ error: "Email Already Exists" });
       // throw new Error("Email Already Exists");
     } else {
-      const incomingdt = { ...req.body };
+      const incomingdt = { ...user };
       incomingdt["password"] = await bcrypt.hash(password, 10);
       incomingdt["cpassword"] = await bcrypt.hash(cpassword, 10);
+      incomingdt["profileimg"] = filename;
       const dbres = await usermodel.create(incomingdt);
+      console.log(incomingdt, dbres, "35");
       res
         .status(STATUS_TYPES.CREATED)
         .send({ message: "User Registered Successfully" });
@@ -69,4 +83,4 @@ const getUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getUser };
+module.exports = { registerUser, loginUser, getUser, upload };
