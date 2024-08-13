@@ -6,7 +6,7 @@ require("dotenv").config();
 require("./db/DBconnection");
 const userRoutes = require("./routes/userRoutes");
 
-const allowedOrigins = ["http://localhost:3000","https://manikanta662001.github.io/Authclient/"];
+const allowedOrigins = ["http://localhost:3000","https://manikanta662001.github.io/"];
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) {
