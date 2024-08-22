@@ -3,6 +3,8 @@ const usermodel = require("../models/userSchema");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const { STATUS_TYPES } = require("../utils/Constants");
+const { createAccessToken, createRefreshToken } = require("../utils/utils");
+require("dotenv").config();
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -50,11 +52,11 @@ const loginUser = async (req, res) => {
   if (user_or_not) {
     const passwordmatch = await bcrypt.compare(password, user_or_not.password);
     if (passwordmatch) {
-      //jwt.sign({ id: user_or_not._id }, process.env.JWT_SECRET,{expiresIn:"1d"});
-      let token = jwt.sign({ id: user_or_not._id }, process.env.JWT_SECRET);
+      let accessToken = createAccessToken(user_or_not._id);
+      let refreshToken = createRefreshToken(user_or_not._id);
       return res
         .status(STATUS_TYPES.CREATED)
-        .json({ message: "Login Successfull", token });
+        .json({ message: "Login Successfull", accessToken, refreshToken });
     } else {
       return res
         .status(STATUS_TYPES.FORBIDDEN)
@@ -83,4 +85,40 @@ const getUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getUser, upload };
+const refershAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.headers.authorization.split(" ")[1];
+    if (refreshToken) {
+      jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+        (err, user) => {
+          if (user) {
+            const accessToken = createAccessToken(user.id);
+            return res.status(STATUS_TYPES.OK).json({ accessToken });
+          }
+        }
+      );
+    }
+    else{
+      return res.status(STATUS_TYPES.BAD_REQUEST).json({ error: 'Token Not found' });
+    }
+  } catch (error) {
+    return res.status(STATUS_TYPES.BAD_REQUEST).json({ error: error.message });
+  }
+};
+
+const fetchUserData = async (req, res) => {
+  const { id } = req.user;
+  const result = await usermodel.findOne({ _id: id });
+  return res.status(STATUS_TYPES.OK).json({ result });
+};
+
+module.exports = {
+  registerUser,
+  loginUser,
+  getUser,
+  upload,
+  refershAccessToken,
+  fetchUserData,
+};
