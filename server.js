@@ -6,7 +6,26 @@ require("dotenv").config();
 require("./db/DBconnection");
 const userRoutes = require("./routes/userRoutes");
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://192.168.10.31",
+  "https://manikanta662001.github.io",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      console.log("ORIGIN:::", origin);
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+  })
+);
 app.use(express.json());
 app.use("/profile-imgs", express.static(path.join(__dirname, "profile-imgs")));
 const port = process.env.PORT || 8000;
